@@ -6,4 +6,4 @@ import './main.css';
 
 Meteor.startup(() => {
   render(() => <App/>, document.getElementById('root'));
-})
+});
