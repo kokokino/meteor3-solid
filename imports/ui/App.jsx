@@ -1,11 +1,17 @@
-import { For } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
+import { Meteor } from "meteor/meteor";
+import { Tracker } from "meteor/tracker";
+import { TasksCollection } from "../api/TasksCollection";
 
 export const App = () => {
-  const tasks = [
-    { text: 'This is task 1' },
-    { text: 'This is task 2' },
-    { text: 'This is task 3' },
-  ];
+  const subscription = Meteor.subscribe("tasks");
+  const [isReady, setIsReady] = createSignal(subscription.ready());
+  const [tasks, setTasks] = createSignal([]);
+
+  Tracker.autorun(async () => {
+    setIsReady(subscription.ready());
+    setTasks(await TasksCollection.find().fetchAsync());
+  });
 
   return (
     <div class="container">
@@ -13,13 +19,18 @@ export const App = () => {
         <h1>Todo List</h1>
       </header>
 
-      <ul>
-        <For each={tasks}>
-          {(task) => (
-            <li>{task.text}</li>
-          )}
-        </For>
-      </ul>
+      <Show
+        when={isReady()}
+        fallback={<div>Loading ...</div>}
+      >
+        <ul>
+          <For each={tasks()}>
+            {(task) => (
+              <li>{task.text}</li>
+            )}
+          </For>
+        </ul>
+      </Show>
     </div>
   );
 };
