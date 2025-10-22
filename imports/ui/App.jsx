@@ -2,6 +2,7 @@ import { createSignal, For, Show } from "solid-js";
 import { Meteor } from "meteor/meteor";
 import { Tracker } from "meteor/tracker";
 import { TasksCollection } from "../api/TasksCollection";
+import { Task } from "./Task.jsx";
 
 export const App = () => {
   const [newTask, setNewTask] = createSignal('');
@@ -23,7 +24,7 @@ export const App = () => {
 
   Tracker.autorun(async () => {
     setIsReady(subscription.ready());
-    setTasks(await TasksCollection.find({}, { sort: { createdAt: -1 } }).fetchAsync());
+    setTasks(await TasksCollection.find({}, { sort: { createdAt: -1, _id: -1 } }).fetchAsync());
   });
 
   return (
@@ -49,7 +50,7 @@ export const App = () => {
         <ul>
           <For each={tasks()}>
             {(task) => (
-              <li>{task.text}</li>
+              <Task task={task} />
             )}
           </For>
         </ul>
