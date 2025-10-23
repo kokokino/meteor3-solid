@@ -1,4 +1,5 @@
-import { createSignal, For, Show } from "solid-js";
+import { ReactiveVar } from 'meteor/reactive-var';
+import { createSignal, For, Show, createEffect } from "solid-js";
 import { Meteor } from "meteor/meteor";
 import { Tracker } from "meteor/tracker";
 import { TasksCollection } from "../api/TasksCollection";
@@ -7,6 +8,14 @@ import { Task } from "./Task.jsx";
 export const App = () => {
   const [newTask, setNewTask] = createSignal('');
   const [hideCompleted, setHideCompleted] = createSignal(false);
+
+  // New: ReactiveVar for Tracker integration
+  const hideCompletedVar = new ReactiveVar(false);
+
+  // New: Sync Solid signal to ReactiveVar (triggers Tracker re-run)
+  createEffect(() => {
+    hideCompletedVar.set(hideCompleted());
+  });
 
   const addTask = async (event) => {
     event.preventDefault();
@@ -29,7 +38,8 @@ export const App = () => {
 
   Tracker.autorun(async () => {
     setIsReady(subscription.ready());
-    const query = hideCompleted() ? { isChecked: { $ne: true } } : {};
+    // Use ReactiveVar in the query for Tracker reactivity
+    const query = hideCompletedVar.get() ? { isChecked: { $ne: true } } : {};
     setTasks(await TasksCollection.find(query, { sort: { createdAt: -1, _id: -1 } }).fetchAsync());
   });
 
