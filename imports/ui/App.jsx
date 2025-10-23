@@ -28,33 +28,39 @@ export const App = () => {
   });
 
   return (
-    <div class="container">
+    <div class="app">
       <header>
-        <h1>Todo List</h1>
+        <div class="app-bar">
+          <div class="app-header">
+            <h1>📝️ Todo List</h1>                    
+          </div>
+        </div>
       </header>
 
-      <form class="task-form" onSubmit={addTask}>
-        <input
-          type="text"
-          placeholder="Type to add new tasks"
-          value={newTask()}
-          onInput={(e) => setNewTask(e.currentTarget.value)}
-        />
-        <button type="submit">Add Task</button>
-      </form>
+      <div class="main">
+        <form class="task-form" onSubmit={addTask}>
+          <input
+            type="text"
+            placeholder="Type to add new tasks"
+            value={newTask()}
+            onInput={(e) => setNewTask(e.currentTarget.value)}
+          />
+          <button type="submit">Add Task</button>
+        </form>
 
-      <Show
-        when={isReady()}
-        fallback={<div>Loading ...</div>}
-      >
-        <ul>
-          <For each={tasks()}>
-            {(task) => (
-              <Task task={task} />
-            )}
-          </For>
-        </ul>
-      </Show>
+        <Show
+          when={isReady()}
+          fallback={<div>Loading ...</div>}
+        >
+          <ul class="tasks">
+            <For each={tasks()}>
+              {(task) => (
+                <Task task={task} />
+              )}
+            </For>
+          </ul>
+        </Show>
+      </div>
     </div>
   );
 };
