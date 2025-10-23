@@ -6,6 +6,7 @@ import { Task } from "./Task.jsx";
 
 export const App = () => {
   const [newTask, setNewTask] = createSignal('');
+  const [hideCompleted, setHideCompleted] = createSignal(false);
 
   const addTask = async (event) => {
     event.preventDefault();
@@ -18,13 +19,24 @@ export const App = () => {
     }
   };
 
+  const toggleHideCompleted = () => {
+    setHideCompleted(!hideCompleted());
+  };
+
   const subscription = Meteor.subscribe("tasks");
   const [isReady, setIsReady] = createSignal(subscription.ready());
   const [tasks, setTasks] = createSignal([]);
 
   Tracker.autorun(async () => {
     setIsReady(subscription.ready());
-    setTasks(await TasksCollection.find({}, { sort: { createdAt: -1, _id: -1 } }).fetchAsync());
+    const query = hideCompleted() ? { isChecked: { $ne: true } } : {};
+    setTasks(await TasksCollection.find(query, { sort: { createdAt: -1, _id: -1 } }).fetchAsync());
+  });
+
+  // Reactive incomplete count
+  const [incompleteCount, setIncompleteCount] = createSignal(0);
+  Tracker.autorun(async () => {
+    setIncompleteCount(await TasksCollection.find({ isChecked: { $ne: true } }).countAsync());
   });
 
   return (
@@ -32,7 +44,7 @@ export const App = () => {
       <header>
         <div class="app-bar">
           <div class="app-header">
-            <h1>📝️ Todo List</h1>                    
+            <h1>📝️ To Do List {incompleteCount() > 0 ? `(${incompleteCount()})` : ''}</h1>
           </div>
         </div>
       </header>
@@ -47,6 +59,17 @@ export const App = () => {
           />
           <button type="submit">Add Task</button>
         </form>
+
+        <div class="filter">
+          <button onClick={toggleHideCompleted}>
+            <Show
+              when={hideCompleted()}
+              fallback="Hide Completed"
+            >
+              Show All
+            </Show>
+          </button>
+        </div>
 
         <Show
           when={isReady()}
